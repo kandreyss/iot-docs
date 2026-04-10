@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+stateDiagram\PYGZhy{}v2
+  [*] \PYGZhy{}\PYGZhy{}\PYGZgt{} Boot
+  Boot \PYGZhy{}\PYGZhy{}\PYGZgt{} DisplayInit
+  DisplayInit \PYGZhy{}\PYGZhy{}\PYGZgt{} WifiTry
+  WifiTry \PYGZhy{}\PYGZhy{}\PYGZgt{} WifiOk: connected
+  WifiTry \PYGZhy{}\PYGZhy{}\PYGZgt{} Offline: timeout
+  WifiOk \PYGZhy{}\PYGZhy{}\PYGZgt{} FirebaseInit
+  FirebaseInit \PYGZhy{}\PYGZhy{}\PYGZgt{} SensorInit
+  Offline \PYGZhy{}\PYGZhy{}\PYGZgt{} SensorInit
+  SensorInit \PYGZhy{}\PYGZhy{}\PYGZgt{} Monitoring
+  Monitoring \PYGZhy{}\PYGZhy{}\PYGZgt{} Monitoring: read sensors + render OLED
+  Monitoring \PYGZhy{}\PYGZhy{}\PYGZgt{} CloudSync: Wi\PYGZhy{}Fi \PYGZam{}\PYGZam{} FirebaseReady \PYGZam{}\PYGZam{} validTime
+  CloudSync \PYGZhy{}\PYGZhy{}\PYGZgt{} Monitoring
+\end{MintedVerbatim}

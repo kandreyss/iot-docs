@@ -1,0 +1,22 @@
+\begin{tikzpicture}[node distance=10mm and 12mm]
+    \node[depbox] (app) {\texttt{App.tsx}};
+    \node[depbox, below left=of app] (curc) {\texttt{components/}\\\texttt{CurrentData.tsx}};
+    \node[depbox, below right=of app] (hisc) {\texttt{components/}\\\texttt{HistoryCharts.tsx}};
+
+    \node[depbox, below left=of curc] (ucc) {\texttt{hooks/}\\\texttt{useCurrentData.ts}};
+    \node[depbox, below right=of hisc] (uhc) {\texttt{hooks/}\\\texttt{useHistoryData.ts}};
+    \node[depbox, below=of app] (tel) {\texttt{utils/telemetry.ts}};
+    \node[depbox, below=of tel] (typ) {\texttt{types/index.ts}};
+    \node[depbox, right=of tel] (fbc) {\texttt{config/firebase.ts}};
+
+    \draw[deparrow] (app) -- (curc);
+    \draw[deparrow] (app) -- (hisc);
+    \draw[deparrow] (curc) -- (ucc);
+    \draw[deparrow] (curc) -- (tel);
+    \draw[deparrow] (hisc) -- (uhc);
+    \draw[deparrow] (ucc) -- (fbc);
+    \draw[deparrow] (uhc) -- (fbc);
+    \draw[deparrow] (ucc) -- (typ);
+    \draw[deparrow] (uhc) -- (typ);
+    \draw[deparrow] (uhc) -- (tel);
+\end{tikzpicture}

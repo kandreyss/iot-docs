@@ -1,0 +1,185 @@
+\section{Прошивка микроконтроллера (\texttt{course\_work})}
+
+\subsection{Платформа и зависимости}
+
+Файл конфигурации окружения: \texttt{course\_work/platformio.ini}.
+
+\begin{itemize}
+    \item Плата: \texttt{nodemcuv2}.
+    \item Фреймворк: \texttt{arduino}.
+    \item Основные библиотеки:
+    \begin{itemize}
+        \item \texttt{Adafruit SSD1306}, \texttt{Adafruit GFX} --- рендеринг пользовательской информации на OLED;
+        \item \texttt{DHT sensor library} --- работа с датчиком температуры и влажности DHT11;
+        \item \texttt{MQUnifiedsensor} --- чтение и калибровка газового датчика MQ-2;
+        \item \texttt{NTPClient} --- синхронизация сетевого времени;
+        \item \texttt{FirebaseClient} (mobizt) --- асинхронные операции чтения/записи в RTDB.
+    \end{itemize}
+\end{itemize}
+
+Выбранный стек ориентирован на устойчивую работу в ограниченных аппаратных ресурсах ESP8266: каждая библиотека закрывает конкретный технологический риск (сенсоры, время, сеть, визуализация, облачная синхронизация).
+
+\subsection{Модульная структура прошивки}
+
+\begin{figure}[htbp]
+\centering
+\begin{adjustbox}{max width=0.96\textwidth}
+\input{tex/figures/firmware-modules.tex}
+\end{adjustbox}
+\caption{Диаграмма зависимостей модулей прошивки}
+\end{figure}
+
+\subsection{Роли модулей}
+
+\begin{itemize}
+    \item \texttt{main.cpp} --- точка входа, оркестрация старта, циклический диспетчер, общая координация сервисов.
+    \item \texttt{app\_config.h} --- централизованный набор констант таймингов и порогов.
+    \item \texttt{secrets.h} --- параметры доступа к Wi-Fi и Firebase.
+    \item \texttt{sensor\_service} --- чтение/калибровка датчиков, нормализация физических измерений.
+    \item \texttt{network\_service} --- подключение к сети, поддержание времени и проверка валидности timestamp.
+    \item \texttt{firebase\_service} --- публикация \texttt{/current}, запись \texttt{/history}, обработка активности пользователя.
+    \item \texttt{display\_service} --- локальная визуализация текущего состояния и телеметрии.
+\end{itemize}
+
+\subsection{Константы и интервалы (\texttt{app\_config})}
+
+\begin{itemize}
+    \item \texttt{WIFI\_TIMEOUT\_MS = 15000} --- ограничение времени старта сетевого соединения.
+    \item \texttt{SENSOR\_UPDATE\_INTERVAL\_MS = 1000} --- период обновления измерений и экрана.
+    \item \texttt{ACTIVITY\_INTERVAL\_MS = 10000} --- период проверки активности пользователя.
+    \item \texttt{MIN\_VALID\_EPOCH = 1700000000} --- минимально допустимое время после синхронизации.
+\end{itemize}
+
+Такая схема интервалов формирует иерархию частот: быстрый контур отвечает за измерения и UX, медленный контур --- за облачную координацию и оптимизацию передачи.
+
+\subsection{Инициализация (\texttt{setup()})}
+
+Порядок выполнения:
+
+\begin{enumerate}
+    \item \texttt{Serial.begin(115200)}.
+    \item \texttt{beginDisplay()}:
+    \begin{itemize}
+        \item при неуспехе --- бесконечный цикл (жёсткий fail-stop).
+    \end{itemize}
+    \item \texttt{connectWiFiAndTime(SSID, PASSWORD, WIFI\_TIMEOUT\_MS)}:
+    \begin{itemize}
+        \item успешное подключение к Wi-Fi;
+        \item запуск NTP (\texttt{pool.ntp.org}, offset \texttt{0}, то есть UTC);
+        \item первичное обновление времени.
+    \end{itemize}
+    \item Если Wi-Fi подключён: \texttt{beginFirebase(FIREBASE\_HOST)}.
+    \item \texttt{beginSensors()}:
+    \begin{itemize}
+        \item \texttt{dht.begin()};
+        \item калибровка MQ-2 (10 итераций, усреднение \texttt{R0}).
+    \end{itemize}
+    \item На OLED выводится \texttt{Init complete / Monitoring...}.
+\end{enumerate}
+
+\subsection{Причины выбранного порядка старта}
+
+\begin{itemize}
+    \item \textbf{Display-first:} при проблемах на уровне индикации устройство сразу фиксирует отказ и не запускает «слепой» режим.
+    \item \textbf{Network-before-cloud:} инициализация Firebase имеет смысл только при наличии сети и валидной временной базы.
+    \item \textbf{Sensors-after-core-services:} к моменту измерений уже готовы журналирование, экран и сетевые подсистемы.
+\end{itemize}
+
+\subsection{Основной цикл (\texttt{loop()})}
+
+\subsubsection*{Непрерывная часть}
+
+\begin{itemize}
+    \item \texttt{loopFirebase()} вызывается всегда, чтобы обрабатывать асинхронные ответы и завершённые облачные операции без блокировки цикла.
+\end{itemize}
+
+\subsubsection*{Периодическая часть (каждые 1 секунду)}
+
+\begin{enumerate}
+    \item \texttt{updateNetworkTime()}.
+    \item Чтение датчиков: \texttt{readSensors()}:
+    \begin{itemize}
+        \item \texttt{temperature = dht.readTemperature()};
+        \item \texttt{humidity = dht.readHumidity()};
+        \item \texttt{gas = mq2.readSensor()}.
+    \end{itemize}
+    \item Получение времени:
+    \begin{itemize}
+        \item \texttt{epoch = getNetworkEpoch()};
+        \item \texttt{formattedTime = getNetworkFormattedTime()};
+        \item \texttt{timeValid = isNetworkTimeValid(epoch, MIN\_VALID\_EPOCH)}.
+    \end{itemize}
+    \item Отрисовка OLED: \texttt{renderTelemetry(...)}.
+    \item При выполнении условий (Wi-Fi + Firebase ready + valid time):
+    \begin{enumerate}
+        \item раз в 10 секунд --- \texttt{checkActivityAndSyncCurrent(...)} и чтение \texttt{/status/last\_viewed};
+        \item раз в час (в первые 60 секунд) --- запись истории в \texttt{/history/\{hourStartEpoch\}}.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Логика активности пользователя (\texttt{/current})}
+
+Ключевая идея: \textbf{ветка \texttt{/current} существует только при подтверждённой пользовательской активности}.
+
+\begin{enumerate}
+    \item Прошивка сохраняет pending-значения телеметрии и выполняет \texttt{get("/status/last\_viewed")}.
+    \item После завершения запроса в \texttt{loopFirebase()} вычисляется \texttt{diff = |pendingEpoch - last\_viewed|}.
+    \item Если \texttt{diff < 120 секунд}:
+    \begin{itemize}
+        \item выполняется запись \texttt{/current = \{"t":..., "h":..., "g":...\}}.
+    \end{itemize}
+    \item Иначе:
+    \begin{itemize}
+        \item выполняется удаление узла \texttt{/current}.
+    \end{itemize}
+\end{enumerate}
+
+Механизм уменьшает объём «пустого» realtime-трафика и сохраняет поведение интуитивным: пользователь видит «живые» данные только тогда, когда интерфейс действительно активен.
+
+\subsection{Логика записи истории (\texttt{/history})}
+
+\begin{itemize}
+    \item Частота: \textbf{1 запись в час}.
+    \item Защита от дубликатов: \texttt{lastHistoryHourSent}.
+    \item Формат пути: \texttt{/history/<epoch начала часа UTC>}.
+    \item Payload: \texttt{t, h, g}.
+\end{itemize}
+
+Почасовая дискретизация обеспечивает компромисс между детализацией и объёмом хранилища, достаточный для практического анализа динамики на уровне часов и суток.
+
+\subsection{Защита от невалидных датчиков}
+
+Перед отправкой:
+
+\begin{itemize}
+    \item \texttt{temperature/humidity} проходят \texttt{sanitizeReading()}:
+    \begin{itemize}
+        \item если \texttt{NaN}, заменяются на \texttt{0.0}.
+    \end{itemize}
+    \item Газ отправляется как есть (округление до ppm выполняется на frontend).
+\end{itemize}
+
+На OLED:
+
+\begin{itemize}
+    \item при \texttt{NaN} у температуры/влажности отображается \texttt{0}.
+\end{itemize}
+
+\subsection{Отображение на OLED (\texttt{display\_service})}
+
+\begin{itemize}
+    \item Разрешение: \texttt{128x32}.
+    \item Обычный режим:
+    \begin{itemize}
+        \item строка времени (при валидном NTP);
+        \item строки \texttt{Tmp}, \texttt{Hum}, \texttt{Gas}.
+    \end{itemize}
+    \item Режим ожидания синхронизации:
+    \begin{itemize}
+        \item отображается \texttt{Time: Syncing...}.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Вывод по прошивке}
+
+Прошивка построена как неблокирующая сервисная система с явным разделением быстрых и медленных циклов. Это обеспечивает устойчивую телеметрию, предсказуемое поведение UI и контролируемую нагрузку на облако даже при нестабильной сети.

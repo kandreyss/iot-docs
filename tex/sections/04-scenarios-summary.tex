@@ -1,0 +1,136 @@
+\section{Сквозные сценарии взаимодействия}
+
+\subsection{Публикация текущих данных при активном пользователе}
+
+\begin{minted}{text}
+sequenceDiagram
+  participant FE as Frontend
+  participant FB as Firebase
+  participant MCU as ESP8266
+
+  FE->>FB: set /status/last_viewed = now (каждые 30с)
+  MCU->>FB: get /status/last_viewed (каждые 10с)
+  FB-->>MCU: last_viewed
+  MCU->>MCU: diff = |epoch - last_viewed|
+  alt diff < 120s
+    MCU->>FB: set /current = {t,h,g}
+    FB-->>FE: onValue(/current) update
+  else diff >= 120s
+    MCU->>FB: remove /current
+    FB-->>FE: /current = null
+  end
+\end{minted}
+
+\subsubsection*{Инженерный смысл сценария}
+
+Сценарий реализует адаптивную передачу данных. Если пользователь недавно взаимодействовал с интерфейсом, система поддерживает активный live-поток. Если пользователь неактивен, поток отключается автоматически, что уменьшает число операций записи/чтения и экономит ресурсы сети.
+
+\subsection{Почасовая запись истории}
+
+\begin{minted}{text}
+sequenceDiagram
+  participant MCU as ESP8266
+  participant FB as Firebase
+  participant FE as Frontend
+
+  MCU->>MCU: Каждый цикл проверка epoch % 3600 < 60
+  MCU->>FB: set /history/{hourStartEpoch} = {t,h,g}
+  FE->>FB: get /history (по кнопке Load data)
+  FE->>FE: фильтрация по диапазону и сортировка
+  FE->>FE: рендер графиков
+\end{minted}
+
+\subsubsection*{Инженерный смысл сценария}
+
+Исторический поток отделён от live-потока и имеет другую частоту. Это предотвращает разрастание базы «мелкими» записями и сохраняет достаточную аналитическую ценность для графиков и отчётности.
+
+\section{Машина состояний прошивки (упрощённо)}
+
+\begin{minted}{text}
+stateDiagram-v2
+  [*] --> Boot
+  Boot --> DisplayInit
+  DisplayInit --> WifiTry
+  WifiTry --> WifiOk: connected
+  WifiTry --> Offline: timeout
+  WifiOk --> FirebaseInit
+  FirebaseInit --> SensorInit
+  Offline --> SensorInit
+  SensorInit --> Monitoring
+  Monitoring --> Monitoring: read sensors + render OLED
+  Monitoring --> CloudSync: Wi-Fi && FirebaseReady && validTime
+  CloudSync --> Monitoring
+\end{minted}
+
+\subsection{Пояснение по состояниям}
+
+\begin{itemize}
+    \item \textbf{Boot / DisplayInit} --- аппаратная готовность и первичная верификация канала локальной индикации.
+    \item \textbf{WifiTry / WifiOk / Offline} --- развилка сетевой доступности без блокировки основного назначения устройства.
+    \item \textbf{FirebaseInit} --- подготовка облачного канала только при наличии сетевой инфраструктуры.
+    \item \textbf{SensorInit / Monitoring} --- переход к целевому рабочему режиму наблюдения.
+    \item \textbf{CloudSync} --- условный контур облачного обмена, активируемый только при валидных предусловиях.
+\end{itemize}
+
+\section{Важные инженерные особенности}
+
+\begin{enumerate}
+    \item \textbf{UTC как единая временная шкала}: NTP offset = \texttt{0}, timestamps хранятся в epoch-секундах.
+    \item \textbf{Асинхронный Firebase-контур}: сетевые операции не блокируют цикл измерений и индикации.
+    \item \textbf{Событийное управление live-потоком}: \texttt{/current} зависит от heartbeat-сигнала пользователя.
+    \item \textbf{Экономичный исторический контур}: архив формируется батчево и запрашивается по требованию.
+    \item \textbf{Явный fail-fast на OLED}: в текущей конфигурации отсутствие дисплея считается критическим отказом.
+\end{enumerate}
+
+\section{Ограничения текущей реализации}
+
+\begin{enumerate}
+    \item \textbf{Секреты в \texttt{secrets.h}}: учётные данные хранятся в коде и требуют усиления политики безопасности.
+    \item \textbf{Чтение всей ветки истории}: при росте объёма данных возрастает нагрузка на сеть и клиентскую фильтрацию.
+    \item \textbf{Отсутствие device-auth}: модель \texttt{NoAuth} снижает уровень защищённости подключения устройства.
+    \item \textbf{Жёсткая реакция на сбой экрана}: отсутствует деградированный режим работы без OLED.
+\end{enumerate}
+
+\section{Рекомендации по развитию}
+
+\begin{enumerate}
+    \item Вынести секреты в приватный конфиг и исключить из репозитория.
+    \item Добавить аутентификацию устройства (custom token через доверенный backend).
+    \item Перейти к диапазонным запросам истории и индексированию по времени.
+    \item Внедрить буферизацию оффлайн-измерений с последующей отправкой после восстановления сети.
+    \item Добавить телеметрию состояния устройства: uptime, RSSI, ошибки публикации, статистику ретраев.
+\end{enumerate}
+
+\section{Карта соответствия «папка → ответственность»}
+
+\begin{longtable}{|p{0.47\textwidth}|p{0.43\textwidth}|}
+\hline
+\textbf{Путь} & \textbf{Ответственность} \\
+\hline
+\path{course_work/src/main.cpp} & orchestration boot + runtime loop \\
+\hline
+\path{course_work/src/sensor_service.cpp} & чтение DHT11 и MQ-2, калибровка MQ-2 \\
+\hline
+\path{course_work/src/network_service.cpp} & Wi-Fi + NTP + валидация времени \\
+\hline
+\path{course_work/src/firebase_service.cpp} & async read/write Firebase, activity logic \\
+\hline
+\path{course_work/src/display_service.cpp} & визуализация статусов и телеметрии на OLED \\
+\hline
+\path{iot-dashboard/src/hooks/useCurrentData.ts} & realtime-подписка на \texttt{current} + heartbeat \\
+\hline
+\path{iot-dashboard/src/hooks/useHistoryData.ts} & загрузка и фильтрация \texttt{history} \\
+\hline
+\path{iot-dashboard/src/components/CurrentData.tsx} & карточки текущих показаний \\
+\hline
+\path{iot-dashboard/src/components/HistoryCharts.tsx} & графики истории и фильтры диапазона \\
+\hline
+\path{iot-dashboard/src/utils/telemetry.ts} & парсинг payload и нормализация газа \\
+\hline
+\end{longtable}
+
+\section{Итоговое заключение}
+
+Реализованная система образует завершённый технический контур IoT-мониторинга: устройство стабильно собирает телеметрию, облачный слой согласованно хранит и синхронизирует данные, а frontend предоставляет пользователю актуальную и историческую картину состояния среды.
+
+Ключевое достоинство архитектуры --- предсказуемое поведение под нагрузкой за счёт разделения потоков данных, асинхронного обмена и строгой временной модели на базе UTC epoch.

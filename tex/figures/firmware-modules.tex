@@ -1,0 +1,18 @@
+\begin{tikzpicture}[node distance=11mm and 11mm]
+    \node[depbox] (main) {\texttt{main.cpp}};
+    \node[depbox, below left=of main] (app) {\texttt{app\_config.h}\\(тайминги)};
+    \node[depbox, below=of main] (sec) {\texttt{secrets.h}\\(Wi-Fi/Firebase)};
+    \node[depbox, below right=of main] (sns) {\texttt{sensor\_service}\\\texttt{.h/.cpp}};
+    \node[depbox, below=of sec] (netw) {\texttt{network\_service}\\\texttt{.h/.cpp}};
+    \node[depbox, below left=of netw] (fb) {\texttt{firebase\_service}\\\texttt{.h/.cpp}};
+    \node[depbox, below right=of netw] (disp) {\texttt{display\_service}\\\texttt{.h/.cpp}};
+
+    \draw[deparrow] (main) -- (app);
+    \draw[deparrow] (main) -- (sec);
+    \draw[deparrow] (main) -- (sns);
+    \draw[deparrow] (main) -- (netw);
+    \draw[deparrow] (main) -- (fb);
+    \draw[deparrow] (main) -- (disp);
+    \draw[deparrow] (sns) -- (disp);
+    \draw[deparrow] (netw) -- (disp);
+\end{tikzpicture}

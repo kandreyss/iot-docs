@@ -1,0 +1,25 @@
+\documentclass[a4paper,14pt,oneside,openany]{memoir}
+\input{/home/kandreys/Projects/TeX/preamble.tex}
+\input{tex/local_preamble.tex}
+
+\begin{document}
+
+\begin{titlingpage}
+    \centering
+    \vspace*{0.2\textheight}
+    {\Large\bfseries Полная техническая документация проекта\\[0.4em]IoT (ESP8266 + Firebase + React)\par}
+    \vfill
+    {\large \today\par}
+\end{titlingpage}
+
+\chapter*{Полная техническая документация проекта IoT (ESP8266 + Firebase + React)}
+\addcontentsline{toc}{chapter}{Полная техническая документация проекта IoT (ESP8266 + Firebase + React)}
+\tableofcontents
+\clearpage
+
+\input{tex/sections/01-intro.tex}
+\input{tex/sections/02-firmware.tex}
+\input{tex/sections/03-cloud-frontend.tex}
+\input{tex/sections/04-scenarios-summary.tex}
+
+\end{document}

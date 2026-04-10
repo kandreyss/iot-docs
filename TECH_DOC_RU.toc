@@ -1,0 +1,47 @@
+\babel@toc {russian}{}\relax 
+\contentsline {chapter}{Полная техническая документация проекта IoT (ESP8266 + Firebase + React)}{1}{chapter*.2}%
+\contentsline {chapter}{Содержание}{1}{chapter*.3}%
+\contentsline {section}{\numberline {1}Назначение системы}{3}{section.0.1}%
+\contentsline {subsection}{\numberline {1.1}Функциональные границы решения}{3}{subsection.0.1.1}%
+\contentsline {subsection}{\numberline {1.2}Критерии качества отчётной системы}{4}{subsection.0.1.2}%
+\contentsline {section}{\numberline {2}Состав репозитория}{4}{section.0.2}%
+\contentsline {subsection}{\numberline {2.1}Логическая декомпозиция проекта}{4}{subsection.0.2.1}%
+\contentsline {subsection}{\numberline {2.2}Принцип разделения ответственности}{5}{subsection.0.2.2}%
+\contentsline {section}{\numberline {3}Архитектура на уровне подсистем}{5}{section.0.3}%
+\contentsline {subsection}{\numberline {3.1}Поток данных и управляющий поток}{5}{subsection.0.3.1}%
+\contentsline {section}{\numberline {4}Прошивка микроконтроллера (\texttt {course\_work})}{6}{section.0.4}%
+\contentsline {subsection}{\numberline {4.1}Платформа и зависимости}{6}{subsection.0.4.1}%
+\contentsline {subsection}{\numberline {4.2}Модульная структура прошивки}{7}{subsection.0.4.2}%
+\contentsline {subsection}{\numberline {4.3}Роли модулей}{7}{subsection.0.4.3}%
+\contentsline {subsection}{\numberline {4.4}Константы и интервалы (\texttt {app\_config})}{8}{subsection.0.4.4}%
+\contentsline {subsection}{\numberline {4.5}Инициализация (\texttt {setup()})}{8}{subsection.0.4.5}%
+\contentsline {subsection}{\numberline {4.6}Причины выбранного порядка старта}{9}{subsection.0.4.6}%
+\contentsline {subsection}{\numberline {4.7}Основной цикл (\texttt {loop()})}{9}{subsection.0.4.7}%
+\contentsline {subsection}{\numberline {4.8}Логика активности пользователя (\texttt {/current})}{10}{subsection.0.4.8}%
+\contentsline {subsection}{\numberline {4.9}Логика записи истории (\texttt {/history})}{10}{subsection.0.4.9}%
+\contentsline {subsection}{\numberline {4.10}Защита от невалидных датчиков}{11}{subsection.0.4.10}%
+\contentsline {subsection}{\numberline {4.11}Отображение на OLED (\texttt {display\_service})}{11}{subsection.0.4.11}%
+\contentsline {subsection}{\numberline {4.12}Вывод по прошивке}{11}{subsection.0.4.12}%
+\contentsline {section}{\numberline {5}Облачный слой (Firebase Realtime Database)}{11}{section.0.5}%
+\contentsline {subsection}{\numberline {5.1}Структура данных}{11}{subsection.0.5.1}%
+\contentsline {subsection}{\numberline {5.2}Назначение веток в RTDB}{12}{subsection.0.5.2}%
+\contentsline {subsection}{\numberline {5.3}Контракт данных}{12}{subsection.0.5.3}%
+\contentsline {subsection}{\numberline {5.4}Преимущества выбранной модели хранения}{12}{subsection.0.5.4}%
+\contentsline {section}{\numberline {6}Frontend (\texttt {iot-dashboard})}{13}{section.0.6}%
+\contentsline {subsection}{\numberline {6.1}Стек}{13}{subsection.0.6.1}%
+\contentsline {subsection}{\numberline {6.2}Архитектурный принцип frontend}{13}{subsection.0.6.2}%
+\contentsline {subsection}{\numberline {6.3}Поток «живых» данных (\texttt {useCurrentData})}{13}{subsection.0.6.3}%
+\contentsline {subsection}{\numberline {6.4}Поток исторических данных (\texttt {useHistoryData})}{14}{subsection.0.6.4}%
+\contentsline {subsection}{\numberline {6.5}UI-уровень}{14}{subsection.0.6.5}%
+\contentsline {subsection}{\numberline {6.6}Обработка ошибок и устойчивость UI}{15}{subsection.0.6.6}%
+\contentsline {subsection}{\numberline {6.7}Вывод по облачному и клиентскому уровням}{15}{subsection.0.6.7}%
+\contentsline {section}{\numberline {7}Сквозные сценарии взаимодействия}{15}{section.0.7}%
+\contentsline {subsection}{\numberline {7.1}Публикация текущих данных при активном пользователе}{15}{subsection.0.7.1}%
+\contentsline {subsection}{\numberline {7.2}Почасовая запись истории}{16}{subsection.0.7.2}%
+\contentsline {section}{\numberline {8}Машина состояний прошивки (упрощённо)}{16}{section.0.8}%
+\contentsline {subsection}{\numberline {8.1}Пояснение по состояниям}{17}{subsection.0.8.1}%
+\contentsline {section}{\numberline {9}Важные инженерные особенности}{17}{section.0.9}%
+\contentsline {section}{\numberline {10}Ограничения текущей реализации}{17}{section.0.10}%
+\contentsline {section}{\numberline {11}Рекомендации по развитию}{18}{section.0.11}%
+\contentsline {section}{\numberline {12}Карта соответствия «папка → ответственность»}{18}{section.0.12}%
+\contentsline {section}{\numberline {13}Итоговое заключение}{19}{section.0.13}%

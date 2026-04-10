@@ -1,0 +1,26 @@
+\usepackage{adjustbox}
+\usetikzlibrary{arrows.meta,positioning,fit}
+
+% Корректная нумерация разделов без префикса номера главы (убирает 0.1, 0.2, ...).
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+\tikzset{
+    depbox/.style={draw, rounded corners, align=center, inner sep=6pt, fill=black!3},
+    depgroup/.style={draw, rounded corners, inner sep=8pt, dashed},
+    deparrow/.style={-Stealth, thick}
+}
+
+% Более аккуратная типографика для пунктов/подпунктов.
+\setlist{
+    topsep=0.35\baselineskip,
+    itemsep=0.15\baselineskip,
+    parsep=0pt,
+    partopsep=0pt
+}
+\setlist[itemize,1]{leftmargin=2.2em}
+\setlist[itemize,2]{leftmargin=2.0em}
+\setlist[enumerate,1]{leftmargin=2.4em}
+\setlist[enumerate,2]{leftmargin=2.6em}
+\setlist[enumerate,3]{leftmargin=2.8em}

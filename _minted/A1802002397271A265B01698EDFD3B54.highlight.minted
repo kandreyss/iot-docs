@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{n+nt}{\PYGZdq{}current\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}t\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mf}{23.5}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}h\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mf}{62.1}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}g\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mi}{3200}\PYG{+w}{ }\PYG{p}{\PYGZcb{},}
+\PYG{+w}{  }\PYG{n+nt}{\PYGZdq{}history\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n+nt}{\PYGZdq{}1712700000\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}t\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mf}{22.1}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}h\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mf}{64.2}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}g\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mi}{2800}\PYG{+w}{ }\PYG{p}{\PYGZcb{},}
+\PYG{+w}{    }\PYG{n+nt}{\PYGZdq{}1712703600\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}t\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mf}{22.5}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}h\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mf}{63.8}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nt}{\PYGZdq{}g\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mi}{2900}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{  }\PYG{p}{\PYGZcb{},}
+\PYG{+w}{  }\PYG{n+nt}{\PYGZdq{}status\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n+nt}{\PYGZdq{}last\PYGZus{}viewed\PYGZdq{}}\PYG{p}{:}\PYG{+w}{ }\PYG{l+m+mi}{1712703650}
+\PYG{+w}{  }\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

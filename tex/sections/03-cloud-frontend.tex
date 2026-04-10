@@ -1,0 +1,137 @@
+\section{Облачный слой (Firebase Realtime Database)}
+
+\subsection{Структура данных}
+
+\begin{minted}{json}
+{
+  "current": { "t": 23.5, "h": 62.1, "g": 3200 },
+  "history": {
+    "1712700000": { "t": 22.1, "h": 64.2, "g": 2800 },
+    "1712703600": { "t": 22.5, "h": 63.8, "g": 2900 }
+  },
+  "status": {
+    "last_viewed": 1712703650
+  }
+}
+\end{minted}
+
+\subsection{Назначение веток в RTDB}
+
+\begin{itemize}
+    \item \texttt{/current} --- оперативное «live»-состояние для мгновенного отображения в UI.
+    \item \texttt{/history/<hourEpoch>} --- архив телеметрии с часовым шагом.
+    \item \texttt{/status/last\_viewed} --- технический маркер активности клиентского интерфейса.
+\end{itemize}
+
+В коде фронтенда предусмотрен парсинг и объекта, и JSON-строки, поэтому система устойчива к различным форматам payload в базе.
+
+\subsection{Контракт данных}
+
+\begin{itemize}
+    \item \texttt{t}: температура, \texttt{number}, \textdegree C.
+    \item \texttt{h}: влажность, \texttt{number}, \%.
+    \item \texttt{g}: газ, \texttt{number} (сырой сигнал датчика, в UI приводится к \texttt{ppm} округлением).
+    \item Все timestamp --- \textbf{Unix epoch, секунды, UTC}.
+\end{itemize}
+
+\subsection{Преимущества выбранной модели хранения}
+
+\begin{enumerate}
+    \item \textbf{Разделение горячих и холодных данных:} ветка \texttt{/current} не перегружает историю, а \texttt{/history} не мешает быстрому отображению.
+    \item \textbf{Простота клиентской подписки:} для live-потока используется один наблюдаемый путь.
+    \item \textbf{Предсказуемая ретроспектива:} исторические точки имеют фиксированную структуру ключей и легко сортируются.
+\end{enumerate}
+
+\section{Frontend (\texttt{iot-dashboard})}
+
+\subsection{Стек}
+
+\begin{itemize}
+    \item React 19 + TypeScript.
+    \item Vite.
+    \item Material UI.
+    \item Recharts.
+    \item Firebase JS SDK (Realtime Database).
+\end{itemize}
+
+\subsection{Архитектурный принцип frontend}
+
+Frontend построен по схеме «данные в хуках, отображение в компонентах». Это уменьшает связанность кода: бизнес-логика доступа к RTDB не смешивается с визуальным представлением.
+
+\begin{figure}[htbp]
+\centering
+\begin{adjustbox}{max width=0.96\textwidth}
+\input{tex/figures/frontend-modules.tex}
+\end{adjustbox}
+\caption{Диаграмма зависимостей модулей frontend}
+\end{figure}
+
+\subsection{Поток «живых» данных (\texttt{useCurrentData})}
+
+\begin{enumerate}
+    \item Создаётся подписка \texttt{onValue(ref(database, "current"))}.
+    \item На каждом обновлении:
+    \begin{itemize}
+        \item payload проходит \texttt{parseTelemetryPayload};
+        \item при успехе обновляется state \texttt{data}, \texttt{last\allowbreak Updated};
+        \item при ошибке обновляется state \texttt{error}.
+    \end{itemize}
+    \item Параллельно работает heartbeat:
+    \begin{itemize}
+        \item сразу при монтировании;
+        \item затем каждые \texttt{30 сек};
+        \item в \texttt{/status/last\_viewed} пишется текущее UTC-время клиента.
+    \end{itemize}
+\end{enumerate}
+
+Heartbeat --- это управляющий сигнал для прошивки. Благодаря ему MCU понимает, нужен ли пользователю live-поток прямо сейчас.
+
+\subsection{Поток исторических данных (\texttt{useHistoryData})}
+
+\begin{enumerate}
+    \item По кнопке \texttt{Load data} компонент применяет диапазон дат.
+    \item Хук делает \texttt{get(ref(database, "history"))}.
+    \item Клиент фильтрует записи по диапазону \texttt{startTimestamp\allowbreak..\allowbreak endTimestamp}.
+    \item Каждая запись:
+    \begin{itemize}
+        \item валидируется и парсится;
+        \item преобразуется в \texttt{ChartDataPoint};
+        \item сортируется по \texttt{timestamp}.
+    \end{itemize}
+    \item \texttt{HistoryCharts} строит график в выбранном режиме:
+    \begin{itemize}
+        \item все метрики;
+        \item только температура;
+        \item только влажность;
+        \item только газ.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{UI-уровень}
+
+\begin{itemize}
+    \item \texttt{CurrentData}:
+    \begin{itemize}
+        \item 3 карточки (temperature/humidity/gas);
+        \item индикатор режима Live;
+        \item время последнего обновления.
+    \end{itemize}
+    \item \texttt{HistoryCharts}:
+    \begin{itemize}
+        \item выбор диапазона дат;
+        \item валидация диапазона;
+        \item интерактивная визуализация на Recharts.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Обработка ошибок и устойчивость UI}
+
+\begin{itemize}
+    \item Ошибки чтения не приводят к остановке приложения, а отображаются пользователю в виде контролируемого состояния.
+    \item Невалидные payload не ломают компонент, а отсекаются на этапе парсинга.
+    \item Отсутствие \texttt{/current} корректно интерпретируется как неактивный поток, а не как критическая ошибка.
+\end{itemize}
+
+\subsection{Вывод по облачному и клиентскому уровням}
+
+Связка Firebase + React-хуки обеспечивает реактивную модель отображения с чётким разделением ответственности: RTDB хранит и синхронизирует состояние, hooks инкапсулируют доступ к данным, компоненты фокусируются на UX и визуальной достоверности представления.

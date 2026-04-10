@@ -1,0 +1,31 @@
+\begin{tikzpicture}[node distance=10mm and 16mm]
+    \node[depbox] (sens) {DHT11 + MQ-2};
+    \node[depbox, below=of sens] (fw) {Firmware loop()};
+    \node[depbox, below left=of fw] (oled) {OLED SSD1306};
+    \node[depbox, below=of fw] (net) {Wi-Fi + NTP};
+    \node[depbox, below right=of fw] (fbw) {FirebaseClient\\(read/write)};
+    \node[depgroup, fit=(sens)(fw)(oled)(net)(fbw), label=above:{\textbf{ESP8266 (course\_work)}}] {};
+
+    \node[depbox, right=35mm of fw] (cur) {/current};
+    \node[depbox, below=of cur] (his) {/history/\{epochHourStart\}};
+    \node[depbox, below=of his] (sta) {/status/last\_viewed};
+    \node[depgroup, fit=(cur)(his)(sta), label=above:{\textbf{Firebase RTDB}}] {};
+
+    \node[depbox, right=35mm of his] (uc) {useCurrentData()};
+    \node[depbox, above=of uc] (uh) {useHistoryData()};
+    \node[depbox, below=of uc] (ui) {CurrentData + HistoryCharts};
+    \node[depgroup, fit=(uc)(uh)(ui), label=above:{\textbf{React Frontend}}] {};
+
+    \draw[deparrow] (sens) -- (fw);
+    \draw[deparrow] (fw) -- (oled);
+    \draw[deparrow] (fw) -- (net);
+    \draw[deparrow] (fw) -- (fbw);
+    \draw[deparrow] (fbw) -- (cur);
+    \draw[deparrow] (fbw) -- (his);
+    \draw[deparrow] (fbw) -- (sta);
+    \draw[deparrow] (cur) -- (uc);
+    \draw[deparrow] (his) -- (uh);
+    \draw[deparrow] (uc) -- (ui);
+    \draw[deparrow] (uh) -- (ui);
+    \draw[deparrow] (uc.east) to[out=20,in=250] (sta.east);
+\end{tikzpicture}

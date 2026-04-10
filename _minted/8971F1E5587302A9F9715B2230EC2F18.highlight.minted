@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+sequenceDiagram
+  participant MCU as ESP8266
+  participant FB as Firebase
+  participant FE as Frontend
+
+  MCU\PYGZhy{}\PYGZgt{}\PYGZgt{}MCU: Каждый цикл проверка epoch \PYGZpc{} 3600 \PYGZlt{} 60
+  MCU\PYGZhy{}\PYGZgt{}\PYGZgt{}FB: set /history/\PYGZob{}hourStartEpoch\PYGZcb{} = \PYGZob{}t,h,g\PYGZcb{}
+  FE\PYGZhy{}\PYGZgt{}\PYGZgt{}FB: get /history (по кнопке Load data)
+  FE\PYGZhy{}\PYGZgt{}\PYGZgt{}FE: фильтрация по диапазону и сортировка
+  FE\PYGZhy{}\PYGZgt{}\PYGZgt{}FE: рендер графиков
+\end{MintedVerbatim}

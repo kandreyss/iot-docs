@@ -1,0 +1,18 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+sequenceDiagram
+  participant FE as Frontend
+  participant FB as Firebase
+  participant MCU as ESP8266
+
+  FE\PYGZhy{}\PYGZgt{}\PYGZgt{}FB: set /status/last\PYGZus{}viewed = now (каждые 30с)
+  MCU\PYGZhy{}\PYGZgt{}\PYGZgt{}FB: get /status/last\PYGZus{}viewed (каждые 10с)
+  FB\PYGZhy{}\PYGZhy{}\PYGZgt{}\PYGZgt{}MCU: last\PYGZus{}viewed
+  MCU\PYGZhy{}\PYGZgt{}\PYGZgt{}MCU: diff = |epoch \PYGZhy{} last\PYGZus{}viewed|
+  alt diff \PYGZlt{} 120s
+    MCU\PYGZhy{}\PYGZgt{}\PYGZgt{}FB: set /current = \PYGZob{}t,h,g\PYGZcb{}
+    FB\PYGZhy{}\PYGZhy{}\PYGZgt{}\PYGZgt{}FE: onValue(/current) update
+  else diff \PYGZgt{}= 120s
+    MCU\PYGZhy{}\PYGZgt{}\PYGZgt{}FB: remove /current
+    FB\PYGZhy{}\PYGZhy{}\PYGZgt{}\PYGZgt{}FE: /current = null
+  end
+\end{MintedVerbatim}
